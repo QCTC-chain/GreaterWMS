@@ -5,15 +5,33 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _load_local_env(path):
+    """Load simple KEY=VALUE settings without adding another dependency."""
+    if not path.exists():
+        return
+    for raw_line in path.read_text(encoding='utf-8').splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key:
+            os.environ.setdefault(key, value)
+
+
+_load_local_env(BASE_DIR / '.env')
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 from django.core.management.utils import get_random_secret_key
-SECRET_KEY = get_random_secret_key()
+SECRET_KEY = os.environ.get('SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in {'1', 'true', 'yes', 'on'}
 
 ALLOWED_HOSTS = ['*']
 
@@ -354,3 +372,14 @@ PATCH_THROTTLE = 500
 DELETE_THROTTLE = 500
 
 JWT_TIME = 60 * 60 * 24 * 365 * 20
+
+# Platform component protocol (/open/v1). In production, set
+# OPEN_API_JWT_SECRET to a stable, high-entropy secret.
+OPEN_API_JWT_SECRET = os.environ.get('OPEN_API_JWT_SECRET', SECRET_KEY)
+OPEN_API_TOKEN_TTL = int(os.environ.get('OPEN_API_TOKEN_TTL', '7200'))
+OPEN_API_BASE_URL = os.environ.get('OPEN_API_BASE_URL', '')
+OPEN_API_COMPONENT_CODE = os.environ.get('OPEN_API_COMPONENT_CODE', 'greaterwms_connector')
+OPEN_API_COMPONENT_NAME = os.environ.get('OPEN_API_COMPONENT_NAME', 'GreaterWMS 仓储管理组件')
+OPEN_API_COMPONENT_VERSION = os.environ.get('OPEN_API_COMPONENT_VERSION', '2.1.48')
+OPEN_API_DEPLOY_DOMAIN = os.environ.get('OPEN_API_DEPLOY_DOMAIN', 'EDGE')
+OPEN_API_PROVIDER = os.environ.get('OPEN_API_PROVIDER', 'GreaterWMS')

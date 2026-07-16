@@ -6,6 +6,7 @@ from django.contrib.staticfiles.views import serve
 from django.views.static import serve as static_serve
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from . import views
+from . import open_api
 
 
 def return_static(request, path, insecure=True, **kwargs):
@@ -13,6 +14,9 @@ def return_static(request, path, insecure=True, **kwargs):
 
 
 urlpatterns = [
+    path('open/v1/auth/token', open_api.token_view, name='open-api-token'),
+    path('open/v1/capabilities', open_api.capabilities_view, name='open-api-capabilities'),
+    path('open/v1/inventory', open_api.inventory_view, name='open-api-inventory'),
     path('admin/', admin.site.urls),
     path('', TemplateView.as_view(template_name='dist/spa/index.html')),
     path('myip/', views.myip, name='myip'),
